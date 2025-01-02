@@ -1,8 +1,27 @@
 import streamlit as st
-from PIL import Image
+import os
+import re
 
-st.title('web page')
-st.caption('This is a main page')
+st.title('赤ちゃんのおへや')
+st.caption('このページは赤ちゃんのお部屋です。')
+st.caption('基本的にはコミケに関する情報を共有するためのページです。')
+st.text('')
+st.text('')
+st.text('リンク')
+# 対象のディレクトリパス
+directory = "./pages"
 
-image=Image.open('./figures/jikkou_button.jpg')
-st.image(image, caption='実行ボタン', width=200)
+# ディレクトリ内のファイル一覧を取得
+file_names = os.listdir(directory)
+
+# 結果を表示
+for filerow in file_names:
+    print(filerow)
+    file=filerow.strip('.py')
+    file=re.sub(r'^\d{4}_',' ',file)
+    #st.page_link(f"pages/{filerow}", label=file)
+    #st.page_link(f"main_app.py",label="trest")
+    st.page_link(f"./pages/{filerow}",label=f"{file}")
+    #st.page_link(f"./pages/0999C106.py",label=file)
+st.markdown('## news')
+st.text('[2025/1/2]赤ちゃんのお部屋 始動！')
