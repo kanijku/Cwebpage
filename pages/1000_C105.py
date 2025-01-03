@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import os
+from pathlib import Path
 import time
 with open('data/alps.txt', 'r', encoding='utf-8') as file:
     alplist = file.read()
@@ -9,7 +9,8 @@ PAGE_NAME='C105'
 
 def main():
     st.title(PAGE_NAME)
-    if not os.path.isfile(f'data/{PAGE_NAME}_data/data_all.csv'):
+    file_path = Path(f'data/{PAGE_NAME}_data')
+    if not file_path.exists():
         st.text('データがありません')
         st.button('merge and reset',on_click=countall)
     else:

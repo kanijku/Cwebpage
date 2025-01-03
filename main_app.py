@@ -1,6 +1,6 @@
 import streamlit as st
-import os
 import re
+from pathlib import Path
 
 st.title('赤ちゃんのおへや')
 st.caption('このページは赤ちゃんのお部屋です。')
@@ -9,10 +9,10 @@ st.text('')
 st.text('')
 st.text('リンク')
 # 対象のディレクトリパス
-directory = "./pages"
+directory = Path('pages')
 
 # ディレクトリ内のファイル一覧を取得
-file_names = os.listdir(directory)
+file_names = [f.name for f in directory.iterdir() if f.is_file()]
 
 # 結果を表示
 for filerow in file_names:
