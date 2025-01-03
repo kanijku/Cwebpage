@@ -2,9 +2,14 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 import time
+from functools import partial
+
+
 with open('data/alps.txt', 'r', encoding='utf-8') as file:
     alplist = file.read()
     ALPLIST = list(alplist)
+    if ALPLIST[0] != 'A':#utf-8のBOMを削除
+        ALPLIST=ALPLIST[1:]
 PAGE_NAME='C105'
 
 def main():
@@ -24,19 +29,7 @@ def main():
     st.markdown('## 編集および追加')
     view_data()
 
-    
-def syuukei_main():
-    st.markdown('### 集計 ')
-    #btn_countall=st.button('集計')
-    dfall=pd.read_csv(f'data/{PAGE_NAME}_data/data_all.csv')
-    edited_df=st.data_editor(dfall)
-    #上書き
-    edited_df.to_csv(f'data/{PAGE_NAME}_data/data_all.csv',index=False)
-    #st.rerun(scope='fragment')
-    btn_hanei=st.button("反映")
-    st.button('merge and reset',on_click=countall)
-    if btn_hanei:
-        change_data(edited_df)
+
 def change_data(edited_df):
     edited_df.to_csv(f'data/{PAGE_NAME}_data/data_all.csv',index=False)
     st.text('データを更新しました')
@@ -55,7 +48,6 @@ def view_data():
 
 def add_data(name):
     @st.dialog("サークル追加")
-
     def add_circle():
         WorE=st.radio("東か西",["東","西"])
         alp=st.selectbox("アルファベット",ALPLIST)
@@ -67,10 +59,35 @@ def add_data(name):
             adddf(name,WorE,alp,number,aorb,count)
             st.text('追加しました')
             st.rerun()
+
+    @st.dialog("サークル削除")
+    def delete_circle():
+        index=st.number_input("削除する行番号",min_value=0)
+
+        if st.button("削除"):
+            dfuser=pd.read_csv(f'data/{PAGE_NAME}_data/data_{name}.csv')
+            rmWorE=dfuser.iloc[index]["WorE"]
+            rmalp=dfuser.iloc[index]["alp"]
+            rmnumber=dfuser.iloc[index]["number"]
+            rmaorb=dfuser.iloc[index]["aorb"]
+            def btn_yes(dfuser):
+                dfuser=dfuser.drop(index)
+                dfuser.to_csv(f'data/{PAGE_NAME}_data/data_{name}.csv',index=False)
+            def btn_no():
+                st.text('キャンセルしました')
+            st.text(f'{rmWorE} {rmalp} {rmnumber} {rmaorb} を削除しますか？')
+                # 引数付きの関数をpartialを使って渡す
+            btn_yes_with_args = partial(btn_yes, dfuser)
+            btn_yes=st.button("はい",on_click=btn_yes_with_args)
+            btn_no=st.button("いいえ",on_click=btn_no)
+
+        
     
     btn_add=st.button("サークル追加")
     if btn_add:
         add_circle()
+    if st.button("サークル削除"):
+        delete_circle()
 def adddf(name,WorE,alp,number,aorb,count):
     try:
         df=pd.read_csv(f'data/{PAGE_NAME}_data/data_{name}.csv')
