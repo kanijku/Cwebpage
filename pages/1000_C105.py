@@ -10,7 +10,10 @@ with open('data/alps.txt', 'r', encoding='utf-8') as file:
     ALPLIST = list(alplist)
     if ALPLIST[0] != 'A':#utf-8のBOMを削除
         ALPLIST=ALPLIST[1:]
+
+#######
 PAGE_NAME='C105'
+#######
 
 def main():
     st.title(PAGE_NAME)
@@ -22,7 +25,7 @@ def main():
         st.markdown('### 集計 ')
         dfall=pd.read_csv(f'data/{PAGE_NAME}_data/data_all.csv')
         edited_df=st.data_editor(dfall)
-        btn_hanei=st.button("反映")
+        btn_hanei=st.button("集計および反映",type='primary')
 
         if btn_hanei:
             change_data(edited_df)
@@ -30,9 +33,28 @@ def main():
     view_data()
 
 
+    st.markdown('')
+    st.markdown('')
+    st.markdown('')
+    st.markdown('')
+    st.markdown('')
+    st.markdown('')
+    st.markdown('### メモおよび仕様')
+    st.markdown('1. データはdataフォルダ内に保存されそれぞれのユーザーごとにファイルが作成されます。')
+    st.markdown('2. サークル追加、サークル削除はこれらのユーザーごとのデータを書き換えるものです。')
+    st.markdown('3. 集計および反映は全ユーザーのデータを集計し、data_all.csvに保存します。ただし、check コラムのデータはページ上の情報を優先し、data_all.csvの情報は上書きされます。')
 def change_data(edited_df):
-    edited_df.to_csv(f'data/{PAGE_NAME}_data/data_all.csv',index=False)
+    countall() #data_all.csvはこの時点でcheckの情報をうしなう　
+    dfall=pd.read_csv(f'data/{PAGE_NAME}_data/data_all.csv')
+
+    
+    merged = pd.merge(dfall, edited_df, on=["WorE", "alp", "number", "aorb"], how="left", suffixes=("_df1", "_df2"))
+    dfall["check"] = merged["check"].fillna(False).astype(bool)
+    dfall["count"] = merged["count_df1"]
+    dfall.to_csv(f'data/{PAGE_NAME}_data/data_all.csv',index=False)
+
     st.text('データを更新しました')
+    time.sleep(2)
     st.rerun()
 
 def view_data():
@@ -43,6 +65,7 @@ def view_data():
 
     dfuser=pd.read_csv(f'data/{PAGE_NAME}_data/data_{name}.csv')
     st.markdown(f'### ユーザー:{name}')
+    st.image(f'{dfmem.loc[dfmem["name"]==name,"icon"].values[0]}',width=100)
     st.dataframe(dfuser)
     add_data(name)
 
@@ -109,7 +132,6 @@ def countall():
 
         df=pd.concat([df,dftmp])
     result=df.groupby(["WorE","alp","number","aorb"],as_index=False)["count"].sum()
-    result["check"]=False
     result.to_csv(f'data/{PAGE_NAME}_data/data_all.csv',index=False)
 
     
